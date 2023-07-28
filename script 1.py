@@ -1,8 +1,9 @@
 # Import libraries
 import pandas as pd
-from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
 # Read data
@@ -20,14 +21,13 @@ print('Number of entries: %d' %len(df))
 Data Preprocessing
 '''
 # Drop irrelevant attributes
-df = df.loc[:, df.columns != 'Name']
-df = df.loc[:, df.columns != 'Passenger ID']
+df = df.drop(['Ticket', 'Name', 'PassengerId', 'Fare'], axis=1)
 
 # Count total missing values for each attribute
 dummy = df.isnull().sum()
 
-# Drop unused attribute
-df = df.loc[:, df.columns != 'Cabin']
+# Drop unused attributes
+df = df.drop(['Cabin'], axis=1)
 
 # Check any invalid format
 def check_format(x, type):
@@ -39,33 +39,39 @@ def check_format(x, type):
     dummy = dummy[i].value_counts()
     print(dummy)
     
-num_att = ['Age', 'Fare', 'Parch', 'Pclass', 'SibSp', 'Family_Size']
-str_att = ['Embarked', 'Sex', 'Ticket', 'Title']
+num_att = ['Age', 'Parch', 'Pclass', 'SibSp', 'Family_Size']
+str_att = ['Embarked', 'Sex', 'Title']
 
 for i in num_att:
     check_format(i, 'num')
 for i in str_att:
     check_format(i, 'str')
-    
+
+# Encode categorical data
+le = preprocessing.LabelEncoder()
+df['Gender'] = le.fit_transform(df['Sex'])
+df['Port'] = le.fit_transform(df['Embarked'])
+df['Title_factor'] = le.fit_transform(df['Title'])
+
 # Data cleansing 1 - Drop all null data
 df.dropna(inplace=True)
 
 # Data cleansing 2 - Replace null data with mode/mean/median
 
 # Extract targets and independent variables
-X = df.loc[:, df.columns != 'Survived']
-y = df.loc[:, df.columns == 'Survived']
+X = df.drop(['Sex', 'Survived', 'Embarked', 'Title'], axis=1)
+y = df['Survived']
 
 # Split the dataset into training and testing set
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=1)
 
 # Call, train and evaluate the model
-model = tree.DecisionTreeClassifier(random_state = 0)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test, y_test)
+clf = DecisionTreeClassifier()
+clf.fit(X_train, y_train)
+prediction = clf.predict(X_test)
 
-accuracy = accuracy_score(y_test,y_pred)
-print('The prediction accuracy is %d.' %accuracy)
+accuracy = accuracy_score(y_test, prediction)
+print('The prediction accuracy is %.4f.' %accuracy)
 
 
 
