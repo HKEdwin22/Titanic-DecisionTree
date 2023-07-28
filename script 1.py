@@ -75,6 +75,4 @@ print('The prediction accuracy is %.4f.' %accuracy)
 
 
 
-
-
 pass
