@@ -1,5 +1,6 @@
 # Import libraries
 import pickle
+import numpy as np
 import pandas as pd
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
@@ -7,6 +8,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing
+import matplotlib.pyplot as plt
+
 
 # Read data
 df = pd.read_csv('./Data/titanic_train.csv')
@@ -87,12 +90,26 @@ X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.20, rand
 
 # Train the model with cross-validation
 depth = []
-for i in range(3,20):
+cv = 7
+for i in range(3, 21):
     clf = tree.DecisionTreeClassifier(max_depth=i)
-    scores = cross_val_score(estimator=clf, X=X, y=y, cv=5, n_jobs=4)
+    scores = cross_val_score(estimator=clf, X=X, y=y, cv=cv, n_jobs=4)
     depth.append((i, scores.mean()))
 print(depth)
 
+# Print the training results
+ax_x = [i for i in range(3,21)]
+ax_y = [i[1] for i in depth]
 
+fig = plt.figure(figsize=(16,9))
+plt.plot(ax_x, ax_y)
+
+plt.xticks(np.array(range(3,21)))
+plt.xlabel('Depth')
+plt.ylabel('Accuracy on Training Set')
+plt.title('%d-fold Cross Validation Training' %cv)
+
+plt.savefig('%d-fold Cross Validation Training.jpg' %cv)
+plt.show()
 
 pass
