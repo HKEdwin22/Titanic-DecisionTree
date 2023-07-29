@@ -1,5 +1,6 @@
 # Import libraries
 import pandas as pd
+from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -73,6 +74,14 @@ prediction = clf.predict(X_test)
 accuracy = accuracy_score(y_test, prediction)
 print('The prediction accuracy is %.4f.' %accuracy)
 
+# Plot the tree
+features = df.drop(['Survived'], axis=1).columns
+target_name = 'Survived'
 
+fig = plt.figure(figsize=(25,20))
+_ = tree.plot_tree(clf, feature_names=features, class_names=target_name, filled=True)
+
+fig.canvas.manager.full_screen_toggle()
+plt.show()
 
 pass
