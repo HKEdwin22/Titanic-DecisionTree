@@ -10,7 +10,6 @@ from sklearn.metrics import accuracy_score
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
 
-
 # Read data
 df = pd.read_csv('./Data/titanic_train.csv')
 
@@ -70,7 +69,10 @@ y = df['Survived']
 # Split the dataset into training and testing set
 X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.20, random_state=1)
 
-# Call, train and evaluate the model
+
+'''
+Call, train and evaluate the model
+'''
 # clf = DecisionTreeClassifier()
 # clf.fit(X_train, y_train)
 # prediction_train = clf.predict(X_train)
@@ -88,28 +90,87 @@ X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.20, rand
 # load the model
 # load_clf = pickle.load(open('./baseline.pickle', 'rb'))
 
-# Train the model with cross-validation
-depth = []
-cv = 7
-for i in range(3, 21):
-    clf = tree.DecisionTreeClassifier(max_depth=i)
-    scores = cross_val_score(estimator=clf, X=X, y=y, cv=cv, n_jobs=4)
-    depth.append((i, scores.mean()))
-print(depth)
 
-# Print the training results
-ax_x = [i for i in range(3,21)]
-ax_y = [i[1] for i in depth]
+'''
+Train the model with cross-validation
+'''
+# depth = []
+# cv = 7
+# for i in range(3, 21):
+#     clf = tree.DecisionTreeClassifier(max_depth=i, random_state=0)
+#     scores = cross_val_score(estimator=clf, X=X, y=y, cv=cv, n_jobs=3)
+#     depth.append((i, scores.mean()))
+# print(depth)
 
-fig = plt.figure(figsize=(16,9))
-plt.plot(ax_x, ax_y)
+# # Print the training results
+# ax_x = [i for i in range(3,21)]
+# ax_y = [i[1] for i in depth]
 
-plt.xticks(np.array(range(3,21)))
+# fig = plt.figure(figsize=(16,9))
+# plt.plot(ax_x, ax_y)
+
+# plt.xticks(np.array(range(3,21)))
+# plt.xlabel('Depth')
+# plt.ylabel('Accuracy on Training Set')
+# plt.title('%d-fold Cross Validation Training' %cv)
+
+# plt.savefig('%d-fold Cross Validation Training.jpg' %cv)
+# plt.show()
+
+
+'''
+Find out the level of depth without overfitting
+'''
+# for i in range(3, 21):
+#     clf = tree.DecisionTreeClassifier(max_depth=i, random_state=0)
+#     scores = cross_val_score(estimator=clf, X=X_train, y=y_train, cv=cv, n_jobs=4)
+#     pred_valid = clf.predict(X_valid)
+#     acc_score.append(accuracy_score(y_valid, pred_valid))
+#     depth.append((i, scores.mean()))
+
+# # Print the training results
+# ax_x = [i for i in range(3,21)]
+# ax_y = [i[1] for i in depth]
+
+# fig = plt.figure(figsize=(16,9))
+# plt.plot(ax_x, ax_y, 'o', color='#aeff6e')
+# plt.plot(ax_x, acc_score, color='#d767ad')
+# fig.legend(['Training', 'Validation'])
+
+# # plt.xticks(np.array(range(3,21)))
+# # plt.xlabel('Depth')
+# # plt.ylabel('Accuracy on Training Set')
+# plt.title('Performance in Training and Validation')
+
+
+'''
+Train and validate the model with 4 levels of depth
+'''
+score_tr, score_val = [], []
+
+for i in range(1, 21):
+    clf = DecisionTreeClassifier(max_depth=i, random_state=0)
+    clf.fit(X_train, y_train)
+
+    pred_tr = clf.predict(X_train)
+    score_tr.append(accuracy_score(y_train, pred_tr))
+
+    pred_valid = clf.predict(X_valid)
+    score_val.append(accuracy_score(y_valid, pred_valid))
+
+# Plot the accuracy
+ax_x = [i for i in range(1,21)]
+fig = plt.figure(figsize=(12,9))
+plt.plot(ax_x, score_tr, color="#6a79a7")
+plt.plot(ax_x, score_val, color='#d767ad')
+
+fig.legend(['Training', 'Validation'])
+plt.title('Accuracy on Training and Validation Set')
+plt.xticks(np.array(range(1,21)))
 plt.xlabel('Depth')
-plt.ylabel('Accuracy on Training Set')
-plt.title('%d-fold Cross Validation Training' %cv)
+plt.ylabel('Accuracy')
 
-plt.savefig('%d-fold Cross Validation Training.jpg' %cv)
+plt.savefig('overfitting.jpg')
 plt.show()
 
 pass
