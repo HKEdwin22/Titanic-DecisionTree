@@ -1,11 +1,12 @@
 # Import libraries
+import pickle
 import pandas as pd
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn import preprocessing
-import matplotlib.pyplot as plt
 
 # Read data
 df = pd.read_csv('./Data/titanic_train.csv')
@@ -64,24 +65,34 @@ X = df.drop(['Sex', 'Survived', 'Embarked', 'Title'], axis=1)
 y = df['Survived']
 
 # Split the dataset into training and testing set
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=1)
+X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.20, random_state=1)
 
 # Call, train and evaluate the model
-clf = DecisionTreeClassifier()
-clf.fit(X_train, y_train)
-prediction = clf.predict(X_test)
+# clf = DecisionTreeClassifier()
+# clf.fit(X_train, y_train)
+# prediction_train = clf.predict(X_train)
+# prediction_valid = clf.predict(X_valid)
 
-accuracy = accuracy_score(y_test, prediction)
-print('The prediction accuracy is %.4f.' %accuracy)
+# accuracy = accuracy_score(y_train, prediction_train)
+# print('The accuracy of the train set is %.4f.' %accuracy)
+# accuracy = accuracy_score(y_valid, prediction_valid)
+# print('The accuracy of the validation set is %.4f.' %accuracy)
 
-# Plot the tree
-features = df.drop(['Survived'], axis=1).columns
-target_name = 'Survived'
+# # save the model
+# file = 'baseline.pickle'
+# pickle.dump(clf, open(file, 'wb'))
 
-fig = plt.figure(figsize=(25,20))
-_ = tree.plot_tree(clf, feature_names=features, class_names=target_name, filled=True)
+# load the model
+# load_clf = pickle.load(open('./baseline.pickle', 'rb'))
 
-fig.canvas.manager.full_screen_toggle()
-plt.show()
+# Train the model with cross-validation
+depth = []
+for i in range(3,20):
+    clf = tree.DecisionTreeClassifier(max_depth=i)
+    scores = cross_val_score(estimator=clf, X=X, y=y, cv=5, n_jobs=4)
+    depth.append((i, scores.mean()))
+print(depth)
+
+
 
 pass
