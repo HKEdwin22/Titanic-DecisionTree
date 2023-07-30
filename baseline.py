@@ -2,13 +2,12 @@
 import pickle
 import numpy as np
 import pandas as pd
-from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Read data
 df = pd.read_csv('./Data/titanic_train.csv')
@@ -25,7 +24,7 @@ print('Number of entries: %d' %len(df))
 Data Preprocessing
 '''
 # Drop irrelevant attributes
-df = df.drop(['Ticket', 'Name', 'PassengerId', 'Fare'], axis=1)
+df = df.drop(['Unnamed: 0', 'Ticket', 'Name', 'PassengerId', 'Fare'], axis=1)
 
 # Count total missing values for each attribute
 dummy = df.isnull().sum()
@@ -92,33 +91,6 @@ Call, train and evaluate the model
 
 
 '''
-Train the model with cross-validation
-'''
-# depth = []
-# cv = 7
-# for i in range(3, 21):
-#     clf = tree.DecisionTreeClassifier(max_depth=i, random_state=0)
-#     scores = cross_val_score(estimator=clf, X=X, y=y, cv=cv, n_jobs=3)
-#     depth.append((i, scores.mean()))
-# print(depth)
-
-# # Print the training results
-# ax_x = [i for i in range(3,21)]
-# ax_y = [i[1] for i in depth]
-
-# fig = plt.figure(figsize=(16,9))
-# plt.plot(ax_x, ax_y)
-
-# plt.xticks(np.array(range(3,21)))
-# plt.xlabel('Depth')
-# plt.ylabel('Accuracy on Training Set')
-# plt.title('%d-fold Cross Validation Training' %cv)
-
-# plt.savefig('%d-fold Cross Validation Training.jpg' %cv)
-# plt.show()
-
-
-'''
 Find out the level of depth without overfitting
 '''
 # for i in range(3, 21):
@@ -144,11 +116,25 @@ Find out the level of depth without overfitting
 
 
 '''
+Feature Selection
+'''
+# Show correlation between the variables and target
+# fig, ax = plt.subplots(figsize=(14,14))
+# sns.heatmap(df.corr(), annot=True, linewidths=.5, fmt='.1f', ax=ax, cmap='RdBu')
+# plt.title('Correlation between attributes and the target')
+# plt.savefig('Correlation.jpg')
+# plt.show()
+
+X = X[['Gender', 'Pclass', 'Port']]
+X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.20, random_state=1)
+
+
+'''
 Train and validate the model with 4 levels of depth
 '''
-score_tr, score_val = [], []
+score_tr, score_val, cm = [], [], []
 
-for i in range(1, 21):
+for i in range(1, 4):
     clf = DecisionTreeClassifier(max_depth=i, random_state=0)
     clf.fit(X_train, y_train)
 
@@ -158,19 +144,68 @@ for i in range(1, 21):
     pred_valid = clf.predict(X_valid)
     score_val.append(accuracy_score(y_valid, pred_valid))
 
+    # Confusion Matrix
+    cm.append(confusion_matrix(y_valid, clf.predict(X_valid)))
+
+fig, axn = plt.subplots(nrows=1, ncols=3, figsize=(16,9))
+for i, ax in enumerate(axn.flat):
+    sns.heatmap(cm[i-1], ax=ax, annot=True, fmt='d', cbar=i==4)
+    ax.set_title('%d level / %.4f' %(i, score_val[i]))
+fig.suptitle('Prediction Results')
+plt.savefig('Confusion Matrix.jpg')
+plt.show()
+
+print(score_val)
+# Lv 1 = 0.7765, Lv 2 = 0.7430 Lv3 = 0.7709
+
+
 # Plot the accuracy
-ax_x = [i for i in range(1,21)]
+ax_x = [i for i in range(1,4)]
 fig = plt.figure(figsize=(12,9))
 plt.plot(ax_x, score_tr, color="#6a79a7")
 plt.plot(ax_x, score_val, color='#d767ad')
 
 fig.legend(['Training', 'Validation'])
 plt.title('Accuracy on Training and Validation Set')
-plt.xticks(np.array(range(1,21)))
+plt.xticks(np.array(range(1,4)))
 plt.xlabel('Depth')
 plt.ylabel('Accuracy')
 
-plt.savefig('overfitting.jpg')
+plt.savefig('overfitting 2.jpg')
 plt.show()
+
+
+
+
+'''
+Train the model with cross-validation
+'''
+depth = []
+cv = 7
+for i in range(3, 21):
+    clf = DecisionTreeClassifier(max_depth=i, random_state=0)
+    scores = cross_val_score(estimator=clf, X=X, y=y, cv=cv, n_jobs=3)
+    depth.append((i, scores.mean()))
+print(depth)
+
+# Print the training results
+ax_x = [i for i in range(3,21)]
+ax_y = [i[1] for i in depth]
+
+fig = plt.figure(figsize=(16,9))
+plt.plot(ax_x, ax_y)
+
+plt.xticks(np.array(range(3,21)))
+plt.xlabel('Depth')
+plt.ylabel('Accuracy on Training Set')
+plt.title('%d-fold Cross Validation Training' %cv)
+
+# plt.savefig('%d-fold Cross Validation Training.jpg' %cv)
+plt.show()
+
+
+
+
+
 
 pass
