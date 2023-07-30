@@ -147,10 +147,10 @@ for i in range(1, 4):
     # Confusion Matrix
     cm.append(confusion_matrix(y_valid, clf.predict(X_valid)))
 
-fig, axn = plt.subplots(nrows=1, ncols=3, figsize=(16,9))
+fig, axn = plt.subplots(nrows=1, ncols=3, figsize=(9,9))
 for i, ax in enumerate(axn.flat):
     sns.heatmap(cm[i-1], ax=ax, annot=True, fmt='d', cbar=i==4)
-    ax.set_title('%d level / %.4f' %(i, score_val[i]))
+    ax.set_title('%d level / %.4f' %(i+1, score_val[i]))
 fig.suptitle('Prediction Results')
 plt.savefig('Confusion Matrix.jpg')
 plt.show()
