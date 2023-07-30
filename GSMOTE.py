@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_validate, train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
@@ -63,26 +63,33 @@ Gsmote = GeometricSMOTE()
 X_resampled, y_resampled = Gsmote.fit_resample(X, y)
 
 # Split the dataset into training and testing set
-X_train, X_valid, y_train, y_valid = train_test_split(X_resampled, y_resampled, test_size=0.20, random_state=1)
+# X_train, X_valid, y_train, y_valid = train_test_split(X_resampled, y_resampled, test_size=0.20, random_state=1)
 
 '''
 Call, train and evaluate the model
 '''
-clf = DecisionTreeClassifier()
-clf.fit(X_train, y_train)
-prediction_train = clf.predict(X_train)
-prediction_valid = clf.predict(X_valid)
+# clf = DecisionTreeClassifier()
+# clf.fit(X_train, y_train)
+# prediction_train = clf.predict(X_train)
+# prediction_valid = clf.predict(X_valid)
 
-accuracy = accuracy_score(y_train, prediction_train)
-print('The accuracy of the train set is %.4f.' %accuracy)
-accuracy = accuracy_score(y_valid, prediction_valid)
-print('The accuracy of the validation set is %.4f.' %accuracy)
+# accuracy = accuracy_score(y_train, prediction_train)
+# print('The accuracy of the train set is %.4f.' %accuracy)
+# accuracy = accuracy_score(y_valid, prediction_valid)
+# print('The accuracy of the validation set is %.4f.' %accuracy)
 
+# # Plot the confusion matrix
+# cm = confusion_matrix(y_valid, prediction_valid)
+# sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+# plt.title('Prediction Results with GSMOTE Applied / %.4f' %accuracy)
+# plt.xlabel('Ground Truth')
+# plt.ylabel('Prediction')
+# plt.show()
 
 
 # save the model
-file = 'baseline.pickle'
-pickle.dump(clf, open(file, 'wb'))
+# file = 'baseline.pickle'
+# pickle.dump(clf, open(file, 'wb'))
 
 # load the model
 # load_clf = pickle.load(open('./baseline.pickle', 'rb'))
@@ -91,26 +98,30 @@ pickle.dump(clf, open(file, 'wb'))
 '''
 Find out the level of depth without overfitting
 '''
-# for i in range(3, 21):
-#     clf = tree.DecisionTreeClassifier(max_depth=i, random_state=0)
-#     scores = cross_val_score(estimator=clf, X=X_train, y=y_train, cv=cv, n_jobs=4)
-#     pred_valid = clf.predict(X_valid)
-#     acc_score.append(accuracy_score(y_valid, pred_valid))
-#     depth.append((i, scores.mean()))
+cv = 11
+scr_tr, scr_val = [], []
+for i in range(1, 15):
+    clf = DecisionTreeClassifier(max_depth=i, random_state=0)
+    scores = cross_validate(estimator=clf, X=X_resampled, y=y_resampled, cv=cv, n_jobs=4, return_train_score=True)
+    scr_tr.append(scores['train_score'].mean())
+    scr_val.append(scores['test_score'].mean())
 
-# # Print the training results
-# ax_x = [i for i in range(3,21)]
-# ax_y = [i[1] for i in depth]
+# Print the training results
+ax_x = [i for i in range(1,15)]
 
-# fig = plt.figure(figsize=(16,9))
-# plt.plot(ax_x, ax_y, 'o', color='#aeff6e')
-# plt.plot(ax_x, acc_score, color='#d767ad')
-# fig.legend(['Training', 'Validation'])
+fig = plt.figure(figsize=(16,9))
+plt.plot(ax_x, scr_tr, color='#6a79a7')
+plt.plot(ax_x, scr_val, color='#d767ad')
+fig.legend(['Training', 'Validation'])
 
-# # plt.xticks(np.array(range(3,21)))
-# # plt.xlabel('Depth')
-# # plt.ylabel('Accuracy on Training Set')
-# plt.title('Performance in Training and Validation')
+plt.annotate(float(round(max(scr_val), 4)), xy=(scr_val.index(max(scr_val))+.6,max(scr_val)+.001))
+plt.xticks(np.array(range(1,15)))
+plt.xlabel('Depth')
+plt.ylabel('Accuracy on Training Set')
+plt.title('Performance in Training and Validation with %d-fold Cross Validation' %cv)
+
+plt.savefig('GSMOTE_best depth search.png')
+plt.show()
 
 
 '''
