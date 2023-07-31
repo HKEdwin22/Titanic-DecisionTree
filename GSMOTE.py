@@ -61,30 +61,32 @@ y = df['Survived']
 # Oversampling
 Gsmote = GeometricSMOTE()
 X_resampled, y_resampled = Gsmote.fit_resample(X, y)
+X_resampled = X_resampled[['Title_factor', 'Gender']]
 
 # Split the dataset into training and testing set
-# X_train, X_valid, y_train, y_valid = train_test_split(X_resampled, y_resampled, test_size=0.20, random_state=1)
+X_train, X_valid, y_train, y_valid = train_test_split(X_resampled, y_resampled, test_size=0.20, random_state=1)
 
 '''
 Call, train and evaluate the model
-'''
-# clf = DecisionTreeClassifier()
-# clf.fit(X_train, y_train)
-# prediction_train = clf.predict(X_train)
-# prediction_valid = clf.predict(X_valid)
+# '''
+clf = DecisionTreeClassifier()
+clf.fit(X_train, y_train)
+prediction_train = clf.predict(X_train)
+prediction_valid = clf.predict(X_valid)
 
-# accuracy = accuracy_score(y_train, prediction_train)
-# print('The accuracy of the train set is %.4f.' %accuracy)
-# accuracy = accuracy_score(y_valid, prediction_valid)
-# print('The accuracy of the validation set is %.4f.' %accuracy)
+scr_tr = accuracy_score(y_train, prediction_train)
+print('The accuracy of the train set is %.4f.' %scr_tr)
+scr_val = accuracy_score(y_valid, prediction_valid)
+print('The accuracy of the validation set is %.4f.' %scr_val)
 
 # # Plot the confusion matrix
-# cm = confusion_matrix(y_valid, prediction_valid)
-# sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-# plt.title('Prediction Results with GSMOTE Applied / %.4f' %accuracy)
-# plt.xlabel('Ground Truth')
-# plt.ylabel('Prediction')
-# plt.show()
+cm = confusion_matrix(y_valid, prediction_valid)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.title('Prediction Results with GSMOTE and 2 Features / (%.4f / %.4f)' %(scr_tr, scr_val))
+plt.xlabel('Predicted Class')
+plt.ylabel('Actual Class')
+plt.savefig('Prediction Results with GSMOTE and 2 Features.png')
+plt.show()
 
 
 # save the model
@@ -96,44 +98,31 @@ Call, train and evaluate the model
 
 
 '''
-Find out the level of depth without overfitting
+Find out the optimal number of fold
 '''
-cv = 5
+X_resampled = X_resampled[['Title_factor', 'Gender']]
+
+cv = [3,5,7,9,11]
 scr_tr, scr_val = [], []
-for i in range(1, 15):
+for i in cv:
     clf = DecisionTreeClassifier(max_depth=i, random_state=0)
-    scores = cross_validate(estimator=clf, X=X_resampled, y=y_resampled, cv=cv, n_jobs=4, return_train_score=True)
+    scores = cross_validate(estimator=clf, X=X_resampled, y=y_resampled, cv=i, n_jobs=4, return_train_score=True)
     scr_tr.append(scores['train_score'].mean())
     scr_val.append(scores['test_score'].mean())
 
-# Print the training results
-ax_x = [i for i in range(1,15)]
-
 fig = plt.figure(figsize=(16,9))
-plt.plot(ax_x, scr_tr, color='#6a79a7')
-plt.plot(ax_x, scr_val, color='#d767ad')
+plt.plot(cv, scr_tr, color='#6a79a7')
+plt.plot(cv, scr_val, color='#d767ad')
 fig.legend(['Training', 'Validation'])
 
 plt.annotate(float(round(max(scr_val), 4)), xy=(scr_val.index(max(scr_val))+.6,max(scr_val)+.001))
-plt.xticks(np.array(range(1,15)))
-plt.xlabel('Depth')
+plt.xticks(np.array(cv))
+plt.xlabel('K-fold')
 plt.ylabel('Accuracy')
-plt.title('Performance in Training and Validation with %d-fold Cross Validation' %cv)
+plt.title('Model Performance with K-fold Cross Validation (two features)' %cv)
 
-plt.savefig('GSMOTE_best depth search.png')
+plt.savefig('CV Performance_two features.png')
 plt.show()
-
-
-'''
-Feature Selection
-'''
-# Show correlation between the variables and target
-# fig, ax = plt.subplots(figsize=(14,14))
-# sns.heatmap(df.corr(), annot=True, linewidths=.5, fmt='.1f', ax=ax, cmap='RdBu')
-# plt.title('Correlation between attributes and the target')
-# plt.savefig('Correlation.jpg')
-# plt.show()
-
 
 
 '''

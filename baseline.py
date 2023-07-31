@@ -94,23 +94,23 @@ Baseline model
 '''
 Feature Selection
 '''
-best_f = []
-score = []
-MI = mutual_info_classif(X, y, random_state=0)
-for scr, feature in sorted (zip(MI, X.columns), reverse=True):
-    print(feature, round(scr, 4))
-    score.append(scr)
-    best_f.append(feature)
+# best_f = []
+# score = []
+# MI = mutual_info_classif(X, y, random_state=0)
+# for scr, feature in sorted (zip(MI, X.columns), reverse=True):
+#     print(feature, round(scr, 4))
+#     score.append(scr)
+#     best_f.append(feature)
 
-fig = plt.figure(figsize=(12,9))
-plt.scatter(best_f, score)
+# fig = plt.figure(figsize=(12,9))
+# plt.scatter(best_f, score)
 
-plt.title('MI of Features')
-plt.xlabel('Feature')
-plt.ylabel('Mutual Information Score')
+# plt.title('MI of Features')
+# plt.xlabel('Feature')
+# plt.ylabel('Mutual Information Score')
 
-plt.savefig('MI of Attributes.png')
-plt.show()
+# plt.savefig('MI of Attributes.png')
+# plt.show()
 
 
 '''
@@ -123,17 +123,23 @@ clf = DecisionTreeClassifier(random_state=0)
 clf.fit(X_train, y_train)
 pred_valid = clf.predict(X_valid)
 
+scr_tr = accuracy_score(y_train, clf.predict(X_train))
+print(scr_tr)
+
 acc_scr = accuracy_score(y_valid, pred_valid)
 cm = confusion_matrix(y_valid, pred_valid)
 
 fig = plt.figure(figsize=(12,9))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
 plt.title('Prediction with Feature Selection / %.4f' %acc_scr)
-plt.ylabel('Ground Truth')
-plt.xlabel('Prediction')
+plt.ylabel('Actual Class')
+plt.xlabel('Predicted Class')
 
 plt.savefig('Confusion Matrix for model 2.png')
 plt.show()
+
+
+
 
 # Show correlation between the variables and target
 # fig, ax = plt.subplots(figsize=(14,14))
