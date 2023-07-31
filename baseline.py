@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_validate, train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn import preprocessing
 import matplotlib.pyplot as plt
@@ -93,26 +93,44 @@ Call, train and evaluate the model
 '''
 Find out the level of depth without overfitting
 '''
-# for i in range(3, 21):
-#     clf = tree.DecisionTreeClassifier(max_depth=i, random_state=0)
-#     scores = cross_val_score(estimator=clf, X=X_train, y=y_train, cv=cv, n_jobs=4)
-#     pred_valid = clf.predict(X_valid)
-#     acc_score.append(accuracy_score(y_valid, pred_valid))
-#     depth.append((i, scores.mean()))
+scr_tr, scr_val = [], []
+for i in range(1, 15):
+    clf = DecisionTreeClassifier(max_depth=i, random_state=0)
+    clf.fit(X_train, y_train)
+
+    pred_tr = clf.predict(X_train)
+    scr_tr.append(accuracy_score(y_train, pred_tr))
+
+    pred_valid = clf.predict(X_valid)
+    scr_val.append(accuracy_score(y_valid, pred_valid))
+
+
+
+
+# 5-fold Cross Validation
+# cv = 5
+# scr_tr, scr_val = [], []
+# for i in range(1, 15):
+#     clf = DecisionTreeClassifier(max_depth=i, random_state=0)
+#     scores = cross_validate(estimator=clf, X=X, y=y, cv=cv, n_jobs=4, return_train_score=True)
+#     scr_tr.append(scores['train_score'].mean())
+#     scr_val.append(scores['test_score'].mean())
 
 # # Print the training results
-# ax_x = [i for i in range(3,21)]
-# ax_y = [i[1] for i in depth]
+ax_x = [i for i in range(1,15)]
 
-# fig = plt.figure(figsize=(16,9))
-# plt.plot(ax_x, ax_y, 'o', color='#aeff6e')
-# plt.plot(ax_x, acc_score, color='#d767ad')
-# fig.legend(['Training', 'Validation'])
+fig = plt.figure(figsize=(16,9))
+plt.plot(ax_x, scr_tr, color='#6a79a7')
+plt.plot(ax_x, scr_val, color='#d767ad')
+fig.legend(['Training', 'Validation'])
 
-# # plt.xticks(np.array(range(3,21)))
-# # plt.xlabel('Depth')
-# # plt.ylabel('Accuracy on Training Set')
-# plt.title('Performance in Training and Validation')
+plt.xticks(np.array(range(1,15)))
+plt.xlabel('Depth')
+plt.ylabel('Accuracy on Training Set')
+plt.title('Performance in Training and Validation')
+
+plt.savefig('baseline.png')
+plt.show()
 
 
 '''

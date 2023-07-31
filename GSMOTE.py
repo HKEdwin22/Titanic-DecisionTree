@@ -98,7 +98,7 @@ Call, train and evaluate the model
 '''
 Find out the level of depth without overfitting
 '''
-cv = 11
+cv = 5
 scr_tr, scr_val = [], []
 for i in range(1, 15):
     clf = DecisionTreeClassifier(max_depth=i, random_state=0)
@@ -117,7 +117,7 @@ fig.legend(['Training', 'Validation'])
 plt.annotate(float(round(max(scr_val), 4)), xy=(scr_val.index(max(scr_val))+.6,max(scr_val)+.001))
 plt.xticks(np.array(range(1,15)))
 plt.xlabel('Depth')
-plt.ylabel('Accuracy on Training Set')
+plt.ylabel('Accuracy')
 plt.title('Performance in Training and Validation with %d-fold Cross Validation' %cv)
 
 plt.savefig('GSMOTE_best depth search.png')
