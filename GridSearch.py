@@ -74,7 +74,7 @@ Grid Search
 best_acc = 0
 
 clf = DecisionTreeClassifier(random_state=0)
-grid = {'max_depth': [i for i in range(1,21)], 'min_samples_leaf': [i for i in range(50,801,50)], 'min_samples_split': [i for i in range(50,801,50)]}
+grid = {'max_depth': [i for i in range(1,21)], 'min_samples_leaf': [i for i in range(50,801,50)], 'min_samples_split': [i for i in range(20,801,20)]}
 for g in ParameterGrid(grid):
     clf.set_params(**g)
     clf.fit(X_train, y_train)
