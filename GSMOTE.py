@@ -69,24 +69,24 @@ X_train, X_valid, y_train, y_valid = train_test_split(X_resampled, y_resampled, 
 '''
 Call, train and evaluate the model
 # '''
-clf = DecisionTreeClassifier()
-clf.fit(X_train, y_train)
-prediction_train = clf.predict(X_train)
-prediction_valid = clf.predict(X_valid)
+# clf = DecisionTreeClassifier()
+# clf.fit(X_train, y_train)
+# prediction_train = clf.predict(X_train)
+# prediction_valid = clf.predict(X_valid)
 
-scr_tr = accuracy_score(y_train, prediction_train)
-print('The accuracy of the train set is %.4f.' %scr_tr)
-scr_val = accuracy_score(y_valid, prediction_valid)
-print('The accuracy of the validation set is %.4f.' %scr_val)
+# scr_tr = accuracy_score(y_train, prediction_train)
+# print('The accuracy of the train set is %.4f.' %scr_tr)
+# scr_val = accuracy_score(y_valid, prediction_valid)
+# print('The accuracy of the validation set is %.4f.' %scr_val)
 
-# # Plot the confusion matrix
-cm = confusion_matrix(y_valid, prediction_valid)
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-plt.title('Prediction Results with GSMOTE and 2 Features / (%.4f / %.4f)' %(scr_tr, scr_val))
-plt.xlabel('Predicted Class')
-plt.ylabel('Actual Class')
-plt.savefig('Prediction Results with GSMOTE and 2 Features.png')
-plt.show()
+# # # Plot the confusion matrix
+# cm = confusion_matrix(y_valid, prediction_valid)
+# sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+# plt.title('Prediction Results with GSMOTE and 2 Features / (%.4f / %.4f)' %(scr_tr, scr_val))
+# plt.xlabel('Predicted Class')
+# plt.ylabel('Actual Class')
+# plt.savefig('Prediction Results with GSMOTE and 2 Features.png')
+# plt.show()
 
 
 # save the model
@@ -95,6 +95,54 @@ plt.show()
 
 # load the model
 # load_clf = pickle.load(open('./baseline.pickle', 'rb'))
+
+
+
+'''
+Train and validate the model with 4 levels of depth
+'''
+# score_tr, score_val, cm = [], [], []
+
+# for i in range(1, 15):
+#     clf = DecisionTreeClassifier(max_depth=i, random_state=0)
+#     clf.fit(X_train, y_train)
+
+#     pred_tr = clf.predict(X_train)
+#     score_tr.append(accuracy_score(y_train, pred_tr))
+
+#     pred_valid = clf.predict(X_valid)
+#     score_val.append(accuracy_score(y_valid, pred_valid))
+
+    # Confusion Matrix
+    # cm.append(confusion_matrix(y_valid, clf.predict(X_valid)))
+
+# fig, axn = plt.subplots(nrows=1, ncols=3, figsize=(16,9))
+# for i, ax in enumerate(axn.flat):
+#     sns.heatmap(cm[i-1], ax=ax, annot=True, fmt='d', cmap='Blues', cbar=i==2)
+#     ax.set_title('%d level / %.4f' %(i+1, score_val[i]))
+# fig.suptitle('Prediction Results')
+# plt.savefig('Confusion Matrix.jpg')
+# plt.show()
+
+# print(score_val)
+# Lv 1 = 0.7765, Lv 2 = 0.7430 Lv3 = 0.7709
+
+
+# Plot the accuracy
+ax_x = [i for i in range(1, len(score_tr)+1)]
+fig = plt.figure(figsize=(12,9))
+plt.plot(ax_x, score_tr, color="#6a79a7")
+plt.plot(ax_x, score_val, color='#d767ad')
+
+fig.legend(['Training', 'Validation'])
+plt.title('Accuracy on Training and Validation Set')
+plt.xticks(np.array(ax_x))
+plt.xlabel('Depth')
+plt.ylabel('Accuracy')
+
+plt.savefig('Overfitting Pattern with GSMOTE-MI models.jpg')
+plt.show()
+
 
 
 '''
@@ -123,54 +171,6 @@ plt.title('Model Performance with K-fold Cross Validation (two features)' %cv)
 
 plt.savefig('CV Performance_two features.png')
 plt.show()
-
-
-'''
-Train and validate the model with 4 levels of depth
-'''
-score_tr, score_val, cm = [], [], []
-
-for i in range(1, 4):
-    clf = DecisionTreeClassifier(max_depth=i, random_state=0)
-    clf.fit(X_train, y_train)
-
-    pred_tr = clf.predict(X_train)
-    score_tr.append(accuracy_score(y_train, pred_tr))
-
-    pred_valid = clf.predict(X_valid)
-    score_val.append(accuracy_score(y_valid, pred_valid))
-
-    # Confusion Matrix
-    cm.append(confusion_matrix(y_valid, clf.predict(X_valid)))
-
-fig, axn = plt.subplots(nrows=1, ncols=3, figsize=(16,9))
-for i, ax in enumerate(axn.flat):
-    sns.heatmap(cm[i-1], ax=ax, annot=True, fmt='d', cmap='Blues', cbar=i==2)
-    ax.set_title('%d level / %.4f' %(i+1, score_val[i]))
-fig.suptitle('Prediction Results')
-plt.savefig('Confusion Matrix.jpg')
-plt.show()
-
-print(score_val)
-# Lv 1 = 0.7765, Lv 2 = 0.7430 Lv3 = 0.7709
-
-
-# Plot the accuracy
-ax_x = [i for i in range(1,4)]
-fig = plt.figure(figsize=(12,9))
-plt.plot(ax_x, score_tr, color="#6a79a7")
-plt.plot(ax_x, score_val, color='#d767ad')
-
-fig.legend(['Training', 'Validation'])
-plt.title('Accuracy on Training and Validation Set')
-plt.xticks(np.array(range(1,4)))
-plt.xlabel('Depth')
-plt.ylabel('Accuracy')
-
-plt.savefig('overfitting 2.jpg')
-plt.show()
-
-
 
 
 '''
