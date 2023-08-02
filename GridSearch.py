@@ -17,7 +17,7 @@ df = pd.read_csv('./Data/titanic_train.csv')
 Data Preprocessing
 '''
 # Drop irrelevant attributes
-df = df.drop(['Unnamed: 0', 'Ticket', 'Name', 'PassengerId'], axis=1)
+df = df.drop(['Unnamed: 0', 'Ticket', 'Name', 'PassengerId', 'Parch', 'SibSp'], axis=1)
 
 # Count total missing values for each attribute
 dummy = df.isnull().sum()
@@ -35,7 +35,7 @@ def check_format(a, type):
     dummy = dummy[a].value_counts()
     print(dummy)
     
-num_att = ['Age', 'Parch', 'Pclass', 'SibSp', 'Family_Size', 'Fare']
+num_att = ['Age', 'Pclass', 'Family_Size', 'Fare']
 str_att = ['Embarked', 'Sex', 'Title']
 
 for i in num_att:
@@ -49,19 +49,23 @@ df['Gender'] = le.fit_transform(df['Sex'])
 df['Port'] = le.fit_transform(df['Embarked'])
 df['Title_factor'] = le.fit_transform(df['Title'])
 
+# Create a new feature Fare Per Head
+df['FarePerHead'] = (df['Fare']/df['Family_Size']).where(df['Family_Size']>0, df['Fare'])
+
 # Data cleansing 1 - Drop all null data
 df.dropna(inplace=True)
 
-# Data cleansing 2 - Replace null data with mode/mean/median
+print('-----------------Data Preprocessing Completed-----------------')
 
 # Extract attributes and target
-X = df.drop(['Survived', 'Sex', 'Embarked', 'Title'], axis=1)
+X = df.drop(['Survived', 'Sex', 'Embarked', 'Title', 'Fare'], axis=1)
 y = df['Survived']
 
 # Oversampling
 Gsmote = GeometricSMOTE()
 X_resampled, y_resampled = Gsmote.fit_resample(X, y)
-X_resampled = X_resampled[['Title_factor', 'Gender']]
+# X_resampled = X_resampled[['Title_factor', 'Gender', 'FarePerHead']]
+# X_resampled = X_resampled.drop(['Port'], axis=1)
 
 # Split the dataset into training and testing set
 X_train, X_valid, y_train, y_valid = train_test_split(X_resampled, y_resampled, test_size=0.20, random_state=1)
@@ -74,20 +78,37 @@ Grid Search
 best_acc = 0
 
 clf = DecisionTreeClassifier(random_state=0)
-grid = {'max_depth': [i for i in range(1,21)], 'min_samples_leaf': [i for i in range(50,801,50)], 'min_samples_split': [i for i in range(20,801,20)]}
+grid = {'max_depth': [i for i in range(1,51)], 'min_samples_leaf': [i for i in range(10,101,10)], 'min_samples_split': [i for i in range(10,101,10)]}
 for g in ParameterGrid(grid):
     clf.set_params(**g)
     clf.fit(X_train, y_train)
     scr_tr = accuracy_score(y_train, clf.predict(X_train))
     scr_val = accuracy_score(y_valid, clf.predict(X_valid))
-    if scr_val >= best_acc:
+    if scr_val > best_acc:
         best_acc = scr_val
         best_grid = g
         best_scr_tr = scr_tr
+    
 
 print('Best Grid: ', best_grid)
-print('validation accuracy: %.4f         training accuracy: %.4f' %(best_acc, best_scr_tr))
+print('Training accuracy: %.4f         Validation accuracy: %.4f' %(best_scr_tr, best_acc))
         
+
+
+'''
+Evaluate the Model
+# '''
+# clf = DecisionTreeClassifier(max_depth=50, min_samples_leaf=70, min_samples_split=100)
+# clf.fit(X_train, y_train)
+
+# file = 'final_3 features.pickle'
+# pickle.dump(clf, open(file, 'wb'))
+
+# scr_tr = accuracy_score(y_train, clf.predict(X_train))
+# scr_val = accuracy_score(y_valid, clf.predict(X_valid))
+
+# print('Training Accuracy: %.4f          Validation Accuracy: %.4f' %(scr_tr, scr_val))
+
 
 
 pass
